@@ -90,19 +90,21 @@ defmodule Sockethost.SocketHandler do
   def broadcast_clientlist(path) do
     Registry.Sockethost
     |> Registry.dispatch(path, fn(entries) ->
-      for {pid, _} <- entries do
-        nickname = GenServer.call(:redis, {:get, pid})
-        response = Poison.encode!(%{
+      response = %{
           "op" => 5,
           "d" => %{
-            "client_list" => entries
-            |> Enum.map(fn(x) -> %{"pid"=>inspect(List.first(Tuple.to_list(x))),"nickname" => nickname} end)
-            |> Enum.to_list
+            "client_list" =>
+              Enum.map(entries, fn(client) ->
+                {pid, _} = client
+                %{"nickname" => GenServer.call(:redis, {:get, pid}), "pid" => inspect(pid)}
+              end)
           }
-        })
-        IO.puts("[Tx] Broadcast CL " <> response)
-        Process.send(pid, response, [])
-      end
+        }
+
+      json_response = Poison.encode!(response)
+
+      IO.puts("[Tx] Broadcast CL " <> json_response)
+      broadcast_msg(path, json_response)
     end)
   end
 end
