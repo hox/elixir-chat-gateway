@@ -30,6 +30,6 @@ jobs:
       - name: Deploy to Kubernetes
         uses: fjogeleit/http-request-action@v1.5.0
         with:
-          url: 'https://kubeapi.eli.tf/restart/deployment/${{ secrets.DEPLOYMENT_NAME }}'
+          url: '${{ secrets.DEPLOYMENT_URL }}'
           method: GET
           bearerToken: ${{ secrets.API_TOKEN }}
